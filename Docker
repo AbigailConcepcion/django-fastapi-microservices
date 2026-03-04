@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: saas
+    ports: ["3306:3306"]
+
+  mongodb:
+    image: mongo
+    ports: ["27017:27017"]
+
+  redis:
+    image: redis
+    ports: ["6379:6379"]
+
+  django:
+    build: ./backend
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    depends_on: [mysql]
+    ports: ["8000:8000"]
+
+  fastapi:
+    build: ./analytics-service
+    command: uvicorn main:app --host 0.0.0.0 --port 8001
+    depends_on: [mongodb, redis]
+    ports: ["8001:8001"]
